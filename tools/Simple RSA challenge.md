@@ -4,6 +4,7 @@ The challenge below is similar to one that appeared at the NCL this season in th
 You were able to intercept the following information from your contact. The message was encrypted using the RSA system.
 
 n = 803
+
 e = 97
 
 You need to decrypt the message below by applying RSA to it.
@@ -34,7 +35,9 @@ a59c83fb11bc27ab38c8d9d662edfb54d6d30d02
 
 ## Challenge #2
 104, 524, 41, 417, 109, 182, 451, 524, 417, 175, 260, 417, 260, 175, 109, 267, 108, 41, 417, 175, 260, 110, 384, 451, 417, 175, 451, 33
+
 e=41
+
 n=545
 
 The hash for the flag this time is.
