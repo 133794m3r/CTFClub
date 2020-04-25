@@ -87,3 +87,8 @@ check_hash("THE_FLAG","HASH_TO_TEST","OPTIONAL_CHOSEN_HASH_DEFAULTS_TO_MD5")
 ```
 
 And if they give back to you "You got the flag then it's working.
+
+
+### Math Divisibility Rules
+[Math Tricks GCD/LCM and Divisbility Rules](https://github.com/133794m3r/Papers/blob/master/education/Math%20Tricks.pdf)
+The paper linked to includes divisibility rules along with how to calculate LCM and GCD w/o having to do it the hard way as you learned in school By using some basic math as laid out in te papers above you can do both challenges w/o having to write any real code. It's entirely doable by hand as I intended.
