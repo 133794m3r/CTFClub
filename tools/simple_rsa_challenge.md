@@ -74,7 +74,7 @@ Use it like so
 check-flag "{THE_FLAG}" "{THE_HASH}" #optional the type of hash sha1 or md5.
 ```
 
-###Python
+### Python
 For those of you who have python installed.
 ```Python
 import hashlib;
