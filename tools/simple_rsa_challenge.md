@@ -56,7 +56,7 @@ hash_flag(){ [ $(echo -n "$1" | sha1sum | cut -d' ' -f1) = "$2" ] && echo "You g
 ```
 Use it like so.
 ```BASH
-hash_flag "{THE_FLAG_YOU_GOT}" "a59c83fb11bc27ab38c8d9d662edfb54d6d30d02"
+hash_flag "{THE_FLAG_YOU_GOT}" "{THE_SHA1_HASH_FOR_THE_FLAG}"
 ```
 ### PowerShell
 For those of you with the misfortune to have to deal with powershell here's that function.
