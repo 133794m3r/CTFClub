@@ -189,18 +189,10 @@ def mod_inv(a,mod):
 	x=0;
 	y=0;
 	x=0;
-	# if a is less than 0 do this.
-	if a < 0:
-		# if the modulus is less than zero
-		# convert it to a positive value.
-		#otherwise set the temporary variable x to the modulus.
-		if mod < 0:
-			x=-mod;
-		else:
-			x=mod;
-		# while a is less than zero keep adding the abs value of the modulus to it.
-		while a < 0:
-			a+=x
+	a_sign=(a < 0)? -1:1;
+	sign_mod=(mod < 0)?-1:1;
+	a*=a_sign;
+	mod*=mod_sign;
 	#use the extended euclidean algorithm to calculate the gcd and also bezout's coeffecients x and y.
 	gcd, x, y = gcd_fast(a,mod)
 	#if the gcd is not 1 or -1 tell them that it's impossible to invert.
@@ -208,17 +200,10 @@ def mod_inv(a,mod):
 		raise ValueError('Inputs are invalid. No modular multiplicative inverse exists between {} and {} gcd:{}.\n'.format(a,mod,gcd))
 	#otherwise do the inversion.
 	else:
-		#if m is negative do the following.
-		if gcd == -1:
-			#if x is less than zero convert x to positive and add it to the modulus.
-			if x < 0:
-				return mod - x
-			#otherwise just add x to the modulus.
-			else:
-				return x + mod
-		#otherwise if m is positive return x (mod m)
+		if(sign_a != 1) and (sign_mod !=1):
+			return -1*((x+mod)%mod);
 		else:
-			return x % mod
+			return x%mod;
 
 
 
