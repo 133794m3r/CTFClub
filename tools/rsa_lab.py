@@ -5,6 +5,7 @@ This utility will encrypt and decrypt RSA.
 Right now it requires you to have the values to encrypt with.
 For fermat's factorization and hastad it requires you to 
 By Macarthur Inbody <mdi2455@email.vccs.edu> <133794m3r@gmail.com>
+
 AGPLv3 or Later
 2020 -
 
@@ -130,6 +131,7 @@ def calc_lamda(p,q):
 	lamda_n=fast_lcm(p-1,q-1)
 
 	return lamda_n
+
 # Calculates the private key d wherein the following conditions are met.
 # d=(e**-1) mod lamda_n. Thus d*e = 1 % lamda_n
 # It utilizes previously defined functions for the calculation and works with
@@ -147,9 +149,7 @@ Via the following formula. c=(m**e) % N
 Returns the cipher number c.
 '''
 def rsa_encrypt(m,e,N):
-	c=0
-	c=pow(
-                m,e,N)
+	c=pow(m,e,N)
 
 	return c
 
@@ -159,7 +159,6 @@ The formula is m=(c**d) % N
 Returns the plain "text" really integer representation of the value.
 '''
 def rsa_decrypt(c,d,N):
-	m=0
 	m=pow(c,d,N)
 
 	return m
@@ -214,6 +213,12 @@ def mod_inv(a,mod):
 		# while a is less than zero keep adding the abs value of the modulus to it.
 		while a < 0:
 			a+=x
+	#this looked like it was going to work but didn't in the end sadly.
+	"""a_sign=(a < 0)? -1:1;
+	sign_mod=(mod < 0)?-1:1;
+	a*=a_sign;
+	mod*=mod_sign;
+	"""
 	#use the extended euclidean algorithm to calculate the gcd and also bezout's coeffecients x and y.
 	gcd, x, y = gcd_fast(a,mod)
 	#if the gcd is not 1 or -1 tell them that it's impossible to invert.
@@ -232,6 +237,13 @@ def mod_inv(a,mod):
 		#otherwise if m is positive return x (mod m)
 		else:
 			return x % mod
+		#same as below here.
+		"""
+		if(sign_a != 1) and (sign_mod !=1):
+			return -1*((x+mod)%mod);
+		else:
+			return x%mod;
+		"""
 
 
 
@@ -270,8 +282,6 @@ def fermats_factor(n):
 		
 	p = a + integer_nthroot(b,2)[0]
 	q = a - integer_nthroot(b,2)[0]
-	
-	#print(('fermat iters:{}').format(k))
 	return (p,q)
 
 
@@ -284,13 +294,14 @@ def int_input(input_string='',base=10):
 			print(e)
 
 	return num
+
 	
 def encrypt_rsa():
-	n=int_input("Enter your modulus n: ",10)
-	e=int_input("Enter your public key exponent e: ",10)
+	n=int(input("Enter your modulus n: "))
+	e=int(input("Enter your public key exponent e: "))
 	n_bits=int(math.log(n)/math.log(2) +1)
 	max_m=n_bits//10
-	encoding_type=int_input("Enter your preferred encoding type\n 1:Radford 2:RSA Standard",10)
+	encoding_type=int(input("Enter your preferred encoding type\n \033[1m1:\033[0mRadford \033[1m2\033[0m:RSA Standard"))
 	if encoding_type == 1:
 		max_m=n_bits //15
 	else:
@@ -308,8 +319,7 @@ def encrypt_rsa():
 
 def decrypt_rsa():
 	print("RSA Decryptor")
-	encoding = int_input("Was it encoded as Radford's way of RSA?\n1: Radford\n2: RSA Standard\n",10)
-
+	encoding = int(input("Was it encoded as Radford's way of RSA?\n\033[1m1: \033[0mRadford\n\033[1m2: \033[0mRSA Standard\n"))
 	print("Are the vectors in a file? Must be in format. Cipher-text Integer->decryption exponent->modulus n.\nY/N")
 	have_file=input()
 	if have_file in ["Y","Yes","yes","y"]:
@@ -330,8 +340,9 @@ def decrypt_rsa():
 			lambda_n=calc_lamda(p,q)
 			d=calc_d(e,lambda_n)
 		else:
-                        d=int_input("enter d: ",10)
+			d=int_input("enter d: ",10)
 		Ct=int_input("Enter the ciphertext integer: ",10)
+		
 	n_bits=int(math.log(n)/math.log(2) +1)
 	
 	if encoding == 1:
@@ -351,6 +362,7 @@ def decrypt_rsa():
 	
 	print("The plaintext is\n{} \n".format(m))
 
+
 #for this to work you have to install sympy.
 #run the command below and remove the """ to allow this to work.
 #pip3 install sympy 
@@ -364,9 +376,8 @@ def fermat_near_prime_attack():
 	lambda_n=calc_lamda(p,q)
 	d=calc_d(e,lambda_n)
 	M=rsa_decrypt(Ct,d,n)
-	encoding=int_input("Was the message encrypted with Radford's encoding or Standard RSA?\n1: Radford\n2:Stock RSA\n",10)
+	encoding=int_input("Was the message encrypted with Radford's encoding or Standard RSA?\n\033[1m1:\033[0m Radford\n\033[1m2:\033[0mStock RSA\n",10)
 	n_bits=int(math.log(n)/math.log(2) +1)
-
 	if encoding == 1:
 		m_len=n_bits // 15
 		M=str(M)
@@ -379,10 +390,11 @@ def fermat_near_prime_attack():
 	print("The found string was: {}".format(m))
 
 def nth_root(val, n):
-    ret = int(val**(1./n))
-    return ret + 1 if (ret + 1) ** n == val else ret
+	ret = int(val**(1./n))
+	return ret + 1 if (ret + 1) ** n == val else ret
 
-def hastad_broadcast_attack(variant=5):
+#same here you need to have sympy installed for this to work.
+def hba3_attack():
 	from sympy import integer_nthroot
 	print("Hastad Broadcast Attack")
 	print("""Each number must be on a certain line. e.g.
@@ -419,60 +431,63 @@ def hastad_broadcast_attack(variant=5):
 			c5=int(lines[12])
 			e5=int(lines[13])
 			n5=int(lines[14])		
-			
 	else:
-		c1=int_input("Enter ciphertext integer (c1): ",10)	
-		e1=int_input("Enter public key exponent e (e1): ",10)	
-		n1=int_input("Enter the modulus (n1): ",10)			
-		c2=int_input("Enter ciphertext integer (c2): ",10)		
-		e2=int_input("Enter public key exponent e (e2): ",10)	
-		n2=int_input("Enter the modulus n (n2): ",10)	
-		c3=int_input("Enter ciphertext integer (c3): ",10)		
-		e3=int_input("Enter public key exponent e (e3): ",10)					
-		n3=int_input("Enter the modulus n (n3): ",10)		
+		c1=int(input("Enter ciphertext integer 1: "))	
+		e1=int(input("Enter public key exponent e 1: "))	
+		n1=int(input("Enter the modulus n1: "))			
+		c2=int(input("Enter ciphertext integer 2: "))		
+		e2=int(input("Enter public key exponent e 1: "))	
+		n2=int(input("Enter the modulus n2: "))	
+		c3=int(input("Enter ciphertext integer 3: "))		
+		e3=int(input("Enter public key exponent e 3: "))					
+		n3=int(input("Enter the modulus n3: "))		
 		if variant == 5:
-			c4=int_input("Enter ciphertext integer (c4): ",10)		
-			e4=int_input("Enter public key exponent (e4): ",10)					
-			n4=int_input("Enter the modulus (n4): ",10)
-			c5=int_input("Enter ciphertext integer (c5): ",10)		
-			e5=int_input("Enter public key exponent (e5): ",10)					
-			n5=int_input("Enter the modulus (n5): ",10)
-	
-	if variant == 5:	
+			c4=int(input("Enter ciphertext integer 4: "))		
+			e4=int(input("Enter public key exponent e 4: "))					
+			n4=int(input("Enter the modulus n4: "))
+			c5=int(input("Enter ciphertext integer 5: "))		
+			e5=int(input("Enter public key exponent e 5: "))					
+			n5=int(input("Enter the modulus n5: "))
+			
+	if variant == 5:
 		N=(n1*n2*n3*n4*n5)
 		N1=n2*n3*n4*n5
 		N2=n1*n3*n4*n5
 		N3=n1*n2*n4*n5
 		N4=n1*n2*n3*n5
 		N5=n1*n2*n3*n4
-	else:
-		N=(n1*n2*n3)
-		N1=(n2*n3)
-		N2=(n1*n3)
-		N3=(n2*n3)
-	
-	d1=mod_inv(N1,n1)
-	d2=mod_inv(N2,n2)
-	d3=mod_inv(N3,n3)
-	if variant == 5:
+		
+		d1=mod_inv(N1,n1)
+		d2=mod_inv(N2,n2)
+		d3=mod_inv(N3,n3)
 		d4=mod_inv(N4,n4)
 		d5=mod_inv(N5,n5)
-
-	x1=(c1*N1*d1)
-	x2=(c2*N2*d2)
-	x3=(c3*N3*d3)
 	
-	if variant ==5:
+		x1=(c1*N1*d1)
+		x2=(c2*N2*d2)
+		x3=(c3*N3*d3)
 		x4=(c4*N4*d4)
 		x5=(c5*N5*d5)
 		X=(x1+x2+x3+x4+x5) % N
 		t=integer_nthroot(X,5)[0]
 	else:
+		N=(n1*n2*n3)
+		N1=n2*n3
+		N2=n1*n3
+		N3=n1*n2
+		
+		d1=mod_inv(N1,n1)
+		d2=mod_inv(N2,n2)
+		d3=mod_inv(N3,n3)		
+		
+		x1=(c1*N1*d1)
+		x2=(c2*N2*d2)
+		x3=(c3*N3*d3)
 		X=(x1+x2+x3) % N
 		t=integer_nthroot(X,3)[0]
-		
-	n_bits=int(math.log(n1)/math.log(2) +1)
-	encoding=int_input("Was the message encrypted with Radford's encoding or Standard RSA?\n1: Radford\n2:Stock RSA\n",10)
+			
+	n_bits=int(math.log(n1)/math.log(2) +1)	
+	encoding=int(input("Was the message encrypted with Radford's encoding or Standard RSA?\n\033[1m1:\033[0m Radford\n\033[1m2:\033[0mStock RSA\n"))
 	if encoding == 1:
 		m_len=n_bits // 15
 		M=str(M)
@@ -480,7 +495,8 @@ def hastad_broadcast_attack(variant=5):
 	else:
 		m_len=n_bits //10
 		m=rsa_ascii_decode(t,m_len)
-	print("\nThe found string was: {}".format(m))
+	print("The found string was: {}".format(m))
+
 
 def crt_common_mod():
 	print("Common Modulus Attack")
@@ -505,14 +521,14 @@ def crt_common_mod():
 		e2=int(lines[3])
 		n=int(lines[4])
 	else:
-		c1=int_input("Enter ciphertext integer 1: ",10)
-		c2=int_input("Enter ciphertext integer 2: ",10)
-		e1=int_input("Enter public key exponent e 1: ",10)
-		e2=int_input("Enter public key exponent e 1: ",10)	
-		n=int_input("Enter the modulus n: ",10)
+		c1=int(input("Enter ciphertext integer 1: "))
+		c2=int(input("Enter ciphertext integer 2: "))
+		e1=int(input("Enter public key exponent e 1: "))
+		e2=int(input("Enter public key exponent e 1: "))	
+		n=int(input("Enter the modulus n: "))
 	M=common_modulus_attack(c1,c2,e1,e2,n)
-	n_bits=int(math.log(n)/math.log(2) +1)
-	encoding=int_input("Was the message encrypted with Radford's encoding or Standard RSA?\n1: Radford\n2:Stock RSA\n",10)
+	n_bits=int(math.log(n)/math.log(2) +1)	
+	encoding=int(input("Was the message encrypted with Radford's encoding or Standard RSA?\n\033[1m1:\033[0m Radford\n\033[1m2:\033[0mStock RSA\n"))
 	if encoding == 1:
 		m_len=n_bits // 15
 		M=str(M)
@@ -521,41 +537,6 @@ def crt_common_mod():
 		m_len=n_bits //10
 		m=rsa_ascii_decode(M,m_len)
 	print("The found string was: {}".format(m))
-	
-def main():
-	choice=0
-	while choice != 5:
-		print("""Welcome to the RSA Lab. Select and option to carry out the operation.
-1: Encrypt RSA
-2: Decrypt RSA
-3: Carry out Common Modulus Attack
-4: Fermat Near Prime Factorization Attack Not working yet. Must install sympy.
-6: Hastad Broadcast Attack e=5 Variant
-7: Hastad Broadcast Attack e=3 Variant
-5: Exit
-			""")
-		choice=int_input()
-		if choice == 1:
-			encrypt_rsa()
-			break
-		elif choice == 2:
-			decrypt_rsa()
-			break
-		elif choice == 3:
-			crt_common_mod()
-			break
-		elif choice == 4:
-			#uncomment next line and recomment one after that to enable this option.
-			fermat_near_prime_attack()
-			break
-		elif choice == 6:			
-			hastad_broadcast_attack(5)
-			break
-		elif choice == 7:
-			hastad_broadcast_attack(3)
-			break
-		elif choice == 5:
-			break
 
 if __name__ == "__main__":
 	main()
