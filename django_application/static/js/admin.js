@@ -13,7 +13,7 @@
 /**
  * modal_challenge
  *
- * @param event {event} The event sent to it.
+ * @param event {Event} The event sent to it.
  * @param challenge_type {string} The challenge's short name.
  * @param edit {boolean} Whether this challenge already exists and should be an edit version.
  */
@@ -131,21 +131,19 @@ function modal_challenge(event,challenge_type,edit){
 /**
  * modal_hint
  * this sets up the modal for the hint that you're editing at the time.
- * 
- * @param {element} The element that we're calling this from, as in what activated it.
- * @param {edit} Whether we're editing a hint or adding a new one, defaults to true as that's the default case.
  *
+ * @param element {HTMLElement} The element we're working with.
+ * @param edit {boolean} Whether we're editing the element.
  */
 function modal_hint(element,edit=true){
-	const hint_id = element.dataset.id;
+	const hint_id = parseInt(element.dataset.id);
 	document.getElementById('add_hint_modal').dataset.backdrop = 'static';
-	document.getElementById('add_hint_modal_title').innerText = (hint_id != 0) ? "Edit Hint" : "Add Hint";
+	document.getElementById('add_hint_modal_title').innerText = (hint_id !== 0) ? "Edit Hint" : "Add Hint";
 	document.getElementById("hint_challenge_name").value = element.dataset.cn;
-	document.getElementById('submit_hint').innerText = (hint_id != 0) ? "Edit Hint" : "Add Hint";
-	document.getElementById('submit_hint').disabled = (hint_id == 0)
+	document.getElementById('submit_hint').innerText = (hint_id !== 0) ? "Edit Hint" : "Add Hint";
+	document.getElementById('submit_hint').disabled = (hint_id === 0)
 	if(edit) {
-		const hint_desc = document.getElementById(`${hint_id}-desc`).innerHTML;
-		document.getElementById("hint_description").value = hint_desc;
+		document.getElementById("hint_description").value = document.getElementById(`${hint_id}-desc`).innerHTML;
 		document.getElementById('hint_id').value = hint_id;
 		document.getElementById('hint_level').value = element.dataset.lvl;
 	}
@@ -159,12 +157,12 @@ function modal_hint(element,edit=true){
 
 /**
  *
- * check_len 
+ * check_len
  * This function checks the length of an input field(specified), and disables the button to submit
  * it if the length is zero.
- * 
- * @param {input_id} the id of the input field we're checking.
- * @param {button_id} The id of the button we're going to disable or enable.
+ *
+ * @param input_id {string} The ID of the inputs we're checking.
+ * @param button_id {string} The button we're going to e disabling or enabling.
  */
 function check_len(input_id,button_id){
 	const len = document.getElementById(input_id).value.length;
@@ -181,7 +179,7 @@ function submit_hint(){
 	const hint_level = parseInt(document.getElementById("hint_level").value);
 	const hint_description = document.getElementById("hint_description").value;
 	const challenge_name = document.getElementById("hint_challenge_name").value;
-	if(hint_description.length === 0 || isNaN(hint_level) || challenge_name.length == 0 ){
+	if(hint_description.length === 0 || isNaN(hint_level) || challenge_name.length === 0 ){
 		return;
 	}
 	hint_id = (isNaN(hint_id))?0:hint_id;
@@ -193,7 +191,7 @@ function submit_hint(){
 	content['level'] = hint_level;
 
 	submit(`/admin/challenge/hints/${challenge_name}/`,content,resp=>{
-		if(hint_id == 0){
+		if(hint_id === 0){
 			content= `<tr><td id="${hint_id}-desc">${hint_description}</td><td><a href="#" data-id="${hint_id}" 
 				data-lvl="${hint_level}" data-cn="${challenge_name}" class="edit_hint">Edit</a></td></tr>`;
 			//Should do this with plain-ol javascript but oh well this works for now.
@@ -248,6 +246,10 @@ function submit_challenge(){
 
 		let variety = content['variety'] || -1;
 		if(variety === -1){
+			if(content['edit']) {
+				document.getElementById(sn).innerHTML = `<button class="btn btn-primary make_challenge ml-1" data-sn="${sn}" data-edit="true">Edit Challenge</button>
+			<button class="btn btn-primary make_challenge ml-1" data-sn="${sn}" data-edit="true" id="${sn}">Edit Challenge</button>`;
+			}
 			CHALLENGES[sn].flag = response.flag;
 			CHALLENGES[sn].full_description = response.description;
 		}
@@ -293,9 +295,9 @@ function get_challenge_info(challenge_type,variety=-1){
  * from creating a new flag so that we have an up-to-date version of the data
  * in the local caches.
  * 
- * @param {new_info} the object we're going to replace it with
- * @param {challenge_type} the challenge's shortname
- * @param {variety} The variety of the challenge. -1 means it has none. This is used for challenges that are part of a series.
+ * @param new_info {object} the object we're going to replace it with
+ * @param challenge_type {string} the challenge's shortname
+ * @param variety {number} The variety of the challenge. -1 means it has none. This is used for challenges that are part of a series.
  * 
  */
 function set_challenge_info(new_info,challenge_type,variety = -1){
@@ -331,12 +333,12 @@ function set_challenge_info(new_info,challenge_type,variety = -1){
  * fetch_challenge_hints
  * Fetches all hints for a particular challenge based upon it's name.
  *
- * @param {name} The challenge's shortname(or shorthand basically it's category)
- * @param {full} Wether or not all varities have been utilized.
+ * @param name {string} The challenge's shortname(or shorthand basically it's category)
+ * @param full {boolean} Whether or not all varieties have been utilized.
  *
  */
 function fetch_challenge_hints(name,full=false){
-	let challenge_name = name
+	let challenge_name
 	if(full === false) {
 		if (CHALLENGES[name].variety) {
 			challenge_name = `${CHALLENGES[name].name} - 0`
@@ -351,9 +353,9 @@ function fetch_challenge_hints(name,full=false){
 	challenge_name = encodeURI(challenge_name);
 	get(`/admin/challenge/hints/${challenge_name}/`,resp=>{
 		console.log(resp);
-		const len = resp.len;
+		const len = parseInt(resp.len);
 		let content = ''
-		if(len == 0){
+		if(len === 0){
 			name = CHALLENGES[name].name;
 			document.getElementById('hint_modal_title').innerText = `${name} : Hints`;
 			document.getElementById('add_hint').dataset.cn = name;
