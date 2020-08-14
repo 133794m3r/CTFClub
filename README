@@ -1,1 +1,11 @@
 This repo will hold various challenges including an interactive tester to see if they solved it right.
+
+# Contents
+
+## Django application
+The django_application folder contains the CTF club project itself and all of the related code for the interactive system. 
+
+It is licensed under the AGPLv3 for most of the code and the libCTF module is LGPLv3.
+
+## the rest
+Since this site is hosted via gh-pages the html and similar parts are there for that old gh-pages version of this site.
