@@ -126,25 +126,28 @@ def logout_view(request):
 
 
 @require_http_methods(["GET"])
-@login_required(login_url="login")
+#@login_required(login_url="login")
 # @ratelimit(key='user',rate='45/m')
 def challenge_view(request,challenge_id):
-
-	solved = False if Solves.objects.filter(user_id=request.user.id,challenge_id=challenge_id).count() == 0 else True
+	if request.user.is_authenticated:
+		solved = False if Solves.objects.filter(user_id=request.user.id,challenge_id=challenge_id).count() == 0 else True
 
 	#If they've already solved it might as well show them the flag.
-	if solved:
-		chal = Challenges.objects.values('id','name','description','points','flag').get(id=challenge_id)
-	else:
-		chal = Challenges.objects.values('id', 'name', 'description', 'points').get(id=challenge_id)
+		if solved:
+			chal = Challenges.objects.values('id','name','description','points','flag').get(id=challenge_id)
+		else:
+			chal = Challenges.objects.values('id', 'name', 'description', 'points').get(id=challenge_id)
 
+	else:
+		solved = False
+		chal = Challenges.objects.values('id', 'name', 'description', 'points').get(id=challenge_id)
 
 	hints = Hints.objects.filter(challenge_id=chal['id']).values('id','level')
 	num_hints = hints.count()
 
 	chal = jsonify_queryset(chal)
 	hints = jsonify_queryset(hints)
-	resp = {'challenge': chal, 'hints': hints,'num_hints':num_hints,'solved':solved}
+	resp = {'challenge': chal, 'hints': hints,'num_hints':num_hints,'solved':solved,'authed':request.user.is_authenticated}
 	return JsonResponse(resp)
 
 
@@ -277,15 +280,13 @@ def challenge_hint(request,challenge_id):
 	pass
 
 
-@login_required(login_url="login")
-@ratelimit(key='user',rate='20/m')
 @require_http_methods(["GET","POST"])
 def hint(request,hint_id):
-	unlocked = HintsUnlocked.objects.filter(hint_id=hint_id,user_id=request.user.id)
+	if request.user.is_authenticated:
+		unlocked = HintsUnlocked.objects.filter(hint_id=hint_id,user_id=request.user.id)
 
-	if unlocked.count() == 0:
-		hint_unlock = HintsUnlocked.objects.create(hint_id=hint_id,user_id=request.user.id)
-
+		if unlocked.count() == 0:
+			hint_unlock = HintsUnlocked.objects.create(hint_id=hint_id,user_id=request.user.id)
 	else:
 		pass
 	#give them just the hint itself as part of the result.
@@ -296,7 +297,6 @@ def hint(request,hint_id):
 
 @login_required(login_url="login")
 @require_http_methods(["GET","POST"])
-# @ratelimit(key='user',rate='20/m',method=ratelimit.UNSAFE)
 def control_panel(request,username):
 	msg = ''
 	if request.user.is_authenticated:
@@ -350,7 +350,6 @@ def solves(request,username = ''):
 
 @login_required(login_url="login")
 @require_http_methods(["GET","POST"])
-# @ratelimit(key='user',rate='10/s')
 def challenge_admin(request):
 	#for the sorting of the challenges later.
 	from operator import itemgetter
@@ -475,7 +474,6 @@ def challenge_admin(request):
 
 
 @login_required(login_url="login")
-# @ratelimit(key='user',rate='45/m')
 def solves_admin(request):
 	if not request.user.is_staff or not request.user.is_superuser:
 		return HttpResponseRedirect(reverse('index'))
@@ -489,7 +487,6 @@ def solves_admin(request):
 
 
 @login_required(login_url="login")
-# @ratelimit(key='user',rate='30/m')
 def get_all_solves(request):
 	if not request.user.is_staff or not request.user.is_superuser:
 		raise Http404()
@@ -513,8 +510,7 @@ def get_all_solves(request):
 
 
 @login_required(login_url="login")
-# @ratelimit(key='user',rate='1/s')
-# @require_http_methods(["POST","GET"])
+@require_http_methods(["POST","GET"])
 def hint_admin(request,challenge_name):
 	if not (request.user.is_staff or request.user.is_superuser):
 		return JsonResponse({'OK':False})
@@ -545,7 +541,6 @@ def hint_admin(request,challenge_name):
 
 
 @login_required(login_url="login")
-# @ratelimit(key='ip',rate='30/m')
 def admin_view(request):
 	if not (request.user.is_staff or request.user.is_superuser):
 		return JsonResponse({'OK':False})
@@ -556,11 +551,9 @@ def admin_view(request):
 	return render(request,"solves_admin.html",{'solves:solves'})
 
 
-# @ratelimit(key='ip',rate='30/m')
 @require_http_methods(["GET"])
 def high_scores(request):
 	top_users = User.objects.values('points','username','id').order_by('-points','username')[:10]
-#	was_limited = getattr(request, 'limited', False)
 	user_ranks = rank_users(top_users)
 
 	return JsonResponse(user_ranks,safe=False)
@@ -572,6 +565,7 @@ def leaderboard(request):
 
 	return render(request,"leaderboard.html",{"ranks":user_ranks})
 
+
 @ratelimit(key='ip',rate='30/m',method=ratelimit.UNSAFE)
 @require_http_methods(["GET","POST"])
 def captcha(request):
@@ -579,7 +573,6 @@ def captcha(request):
 	error = False
 	ratelimited = False
 
-	#print(request.session.get('captcha_expires'))
 	if request.method == "POST":
 		if is_ratelimited(request):
 			ratelimited = True
@@ -633,7 +626,7 @@ def file(request,filename):
 
 # TFA related views.
 @login_required(login_url='login')
-@require_http_methods(["GET","POST"])
+@require_http_methods(["GET"])
 def tfa_qr_code(request):
 	domain = request.get_host()
 	if not domain:

@@ -55,6 +55,10 @@ function fetch_chal(challenge_id){
 				fetch_hint(parseInt(el.dataset.id));
 			});
 		});
+		if(!resp.authed){
+			document.getElementById('solve_chal').disabled = true;
+			document.getElementById('answer').setAttribute('readonly','true');
+		}
 		$('#challenge_modal').modal('toggle');
 	})
 }
