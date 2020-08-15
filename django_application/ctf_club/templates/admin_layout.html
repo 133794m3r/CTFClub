@@ -54,8 +54,11 @@ Licensed AGPLv3 Or later (2020)
 			<li class="nav-item">
 				<a class="nav-link" href="{% url 'challenge_admin' %}">Challenge Page</a>
 			</li>
-			<li class="navi-item">
+			<li class="nav-item">
 				<a class="nav-link" href="{% url 'solves_admin' %}">All Solves</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="{% url 'admin_leaderboard' %}">All Leaderboard</a>
 			</li>
 			{% if user.is_superuser %}
 			<li class="nav-item">

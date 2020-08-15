@@ -167,7 +167,7 @@ def register(request):
 			              {"message":"You're going too fast. Slow down.",
 			               "captcha_msg":captcha_msg, "color_name":color_name,
 			               "img_str":img_str})
-		# print(request.POST)
+
 		username = request.POST.get("username")
 		email = request.POST.get("email")
 
@@ -337,7 +337,7 @@ def solves(request,username = ''):
 		username = request.user.username
 	else:
 		user_solves = Solves.objects.filter(user__username=username)
-	print(user_solves)
+
 	if user_solves.first() is None:
 		all_solves = {}
 		num_solves = 0
@@ -364,7 +364,7 @@ def challenge_admin(request):
 		content = json_decode(request.body)
 		name = content['name']
 		category = content['category']
-		print(content)
+
 		if content['sn'] == 'fizzbuzz':
 			minimum = content['min']
 			maximum = content['max']
@@ -395,7 +395,7 @@ def challenge_admin(request):
 			old_solves.delete()
 
 		else:
-			#print(category)
+
 			challenge = Challenges.objects.create(
 				name = name,
 				description = description,
@@ -408,7 +408,7 @@ def challenge_admin(request):
 					filename=files
 				)
 				challenge.files.add(file_obj)
-		#print({'description':description,'flag':flag,'files':files})
+
 		return JsonResponse({'description':description,'flag':flag,'files':files})
 	else:
 		challenges = Challenges.objects.all()
@@ -446,7 +446,7 @@ def challenge_admin(request):
 					challenges_used.append(indexed)
 					base_challenges.append(chal_obj)
 					if challenge_template['files']:
-						#print(challenge.files.all())
+
 						files = challenge.files.all()
 						chal_obj['files'] = [jsonify_queryset(files)] if files.count() == 1 else jsonify_queryset(files)
 					all_challenges.append(chal_obj)
@@ -554,8 +554,8 @@ def admin_view(request):
 @require_http_methods(["GET"])
 def high_scores(request):
 	#only show users who have done something.
-	#top_users = User.objects.values('points', 'username', 'id').filter(points__gt=0).order_by('-points', 'username')[:25]
-	top_users = User.objects.values('points','username','id').order_by('-points', 'username')[:25]
+	top_users = User.objects.values('points', 'username', 'id').filter(points__gt=0).order_by('-points', 'username')[:25]
+	#top_users = User.objects.values('points','username','id').order_by('-points', 'username')[:25]
 	user_ranks = rank_users(top_users)
 
 	return JsonResponse(user_ranks,safe=False)
@@ -563,8 +563,8 @@ def high_scores(request):
 @require_http_methods(["GET"])
 def leaderboard(request):
 	#Only show users who have actually done something.
-	#top_users = User.objects.values('points', 'username', 'id').filter(points__gt=0).order_by('-points', 'username')[:25]
-	top_users = User.objects.values('points','username','id').order_by('-points', 'username')[:25]
+	top_users = User.objects.values('points', 'username', 'id').filter(points__gt=0).order_by('-points', 'username')[:25]
+	#top_users = User.objects.values('points','username','id').order_by('-points', 'username')[:25]
 	user_ranks = rank_users(top_users)
 
 	return render(request,"leaderboard.html",{"ranks":user_ranks})
@@ -701,3 +701,14 @@ def verify_tfa(request):
 
 def about(request):
 	return render(request,"about.html")
+
+@login_required()
+@require_http_methods(["GET"])
+def admin_leaderboard(request):
+	if not (request.user.is_staff or request.user.is_superuser):
+		return HttpResponseRedirect(reverse('index'))
+
+	top_users = User.objects.values('points','username','id').order_by('-points', 'username')
+	user_ranks = rank_users(top_users)
+
+	return render(request,"admin_leaderboard.html",{"ranks":user_ranks})

@@ -154,6 +154,7 @@ function modal_hint(element,edit=true){
 	}
 	else{
 		document.getElementById("hint_description").value = "";
+		document.getElementById('hint_id').value = 0;
 	}
 	$('#add_hint_modal').modal("toggle");
 

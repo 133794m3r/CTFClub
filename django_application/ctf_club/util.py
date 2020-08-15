@@ -196,7 +196,6 @@ def rank_users(users):
 						user_ranks[j]['len'] +=1
 						break
 				else:
-					print(user,x['users'][j])
 					if user['points'] == x['users'][j]['points']:
 						user_ranks[j]['len'] +=1
 						user_ranks[j]['users'].append(user)

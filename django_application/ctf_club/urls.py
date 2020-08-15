@@ -28,6 +28,6 @@ urlpatterns = [
 	path("two_factor",views.tfa_enable,name="two_factor"),
 	path("verify_tfa",views.verify_tfa,name="verify_tfa"),
 	path("about",views.about,name="about"),
-
+	path("admin/leaderboard",views.admin_leaderboard,name="admin_leaderboard"),
 	path("leaderboard",views.leaderboard,name="leaderboard"),
 ]
