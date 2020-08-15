@@ -46,6 +46,10 @@ function modal_challenge(event,challenge_type,edit){
 				<input type="number" name="max" id="max" min="1201" max="3000" class="input_items numbers"/>
 			</div>
 		</div>`;
+		 flag = chal.flag;
+		 if(flag !== ''){
+		 	full_description = chal.full_description + `<p>The flag was ${flag}.</p>`
+		 }
 		break;
 
 		 default:
@@ -76,7 +80,7 @@ function modal_challenge(event,challenge_type,edit){
 	const el = document.getElementById('input_description');
 	if (edit === true) {
 		const fd = document.getElementById('full_description');
-		if (full_description == '') {
+		if (full_description === '') {
 			full_description = chal.full_description;
 		}
 		fd.innerHTML = `<p>For reference, the old challenge is below here.</p>` + full_description;
@@ -117,6 +121,7 @@ function modal_challenge(event,challenge_type,edit){
 		el2.hidden = true;
 		el2.disabled = true;
 		el2.setAttribute('aria-hidden',"true");
+		document.getElementById('full_description').innerHTML = ''
 	}
 	document.getElementById('manage_challenge_hint').dataset.sn = challenge_type
 	el.innerHTML = `<span>${chal.description}</span>`;
@@ -246,9 +251,17 @@ function submit_challenge(){
 
 		let variety = content['variety'] || -1;
 		if(variety === -1){
-			if(content['edit']) {
-				document.getElementById(sn).innerHTML = `<button class="btn btn-primary make_challenge ml-1" data-sn="${sn}" data-edit="true">Edit Challenge</button>
-			<button class="btn btn-primary make_challenge ml-1" data-sn="${sn}" data-edit="true" id="${sn}">Edit Challenge</button>`;
+			console.log(variety);
+			console.log(content['edit']);
+			if(!content['edit']) {
+				document.getElementById(sn).innerHTML = `<button class="btn btn-primary manage_hints mr-1" data-sn="${sn}" data-edit="true" id="hint-${sn}">Manage Hints</button>
+			<button class="btn btn-primary make_challenge ml-1" data-sn="${sn}" data-edit="true" id="chal-${sn}">Edit Challenge</button>`;
+				document.getElementById(`chal-${sn}`).addEventListener('click',event=>{
+				  	modal_challenge(event,sn, true);
+				})
+				document.getElementById(`hint-${sn}`).addEventListener('click',event=>{
+				  	fetch_challenge_hints(sn);
+				})
 			}
 			CHALLENGES[sn].flag = response.flag;
 			CHALLENGES[sn].full_description = response.description;
@@ -348,17 +361,24 @@ function fetch_challenge_hints(name,full=false){
 		}
 	}
 	else{
-		challenge_name = CHALLENGES[name].name;
+
+		if(CHALLENGES[name].variety){
+			const variety = document.getElementById('variety').value;
+			challenge_name = `${CHALLENGES[name].name} - ${variety}`;
+		}
+		else {
+			challenge_name = CHALLENGES[name].name;
+		}
 	}
-	challenge_name = encodeURI(challenge_name);
-	get(`/admin/challenge/hints/${challenge_name}/`,resp=>{
+	let challenge_name_enc = encodeURI(challenge_name);
+	get(`/admin/challenge/hints/${challenge_name_enc}/`,resp=>{
 		console.log(resp);
 		const len = parseInt(resp.len);
 		let content = ''
+		document.getElementById('hint_modal_title').innerText = `${challenge_name} : Hints`;
 		if(len === 0){
 			name = CHALLENGES[name].name;
-			document.getElementById('hint_modal_title').innerText = `${name} : Hints`;
-			document.getElementById('add_hint').dataset.cn = name;
+			document.getElementById('add_hint').dataset.cn = challenge_name;
 		}
 		else if(len === 1){
 			document.getElementById('add_hint').dataset.cn = resp.hints.challenge_name;
