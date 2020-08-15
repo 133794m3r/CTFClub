@@ -553,14 +553,18 @@ def admin_view(request):
 
 @require_http_methods(["GET"])
 def high_scores(request):
-	top_users = User.objects.values('points','username','id').order_by('-points','username')[:10]
+	#only show users who have done something.
+	#top_users = User.objects.values('points', 'username', 'id').filter(points__gt=0).order_by('-points', 'username')[:25]
+	top_users = User.objects.values('points','username','id').order_by('-points', 'username')[:25]
 	user_ranks = rank_users(top_users)
 
 	return JsonResponse(user_ranks,safe=False)
 
 @require_http_methods(["GET"])
 def leaderboard(request):
-	top_users = User.objects.values('points', 'username', 'id').order_by('-points', 'username')[:10]
+	#Only show users who have actually done something.
+	#top_users = User.objects.values('points', 'username', 'id').filter(points__gt=0).order_by('-points', 'username')[:25]
+	top_users = User.objects.values('points','username','id').order_by('-points', 'username')[:25]
 	user_ranks = rank_users(top_users)
 
 	return render(request,"leaderboard.html",{"ranks":user_ranks})
