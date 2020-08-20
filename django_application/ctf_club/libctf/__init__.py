@@ -7,4 +7,5 @@ from .crypt_hill import *
 from .master_hacker import make_masterhacker
 from .rsa_flags import *
 from .fizzbuzz import *
-from .classical_ciphers import *
+from .classical_ciphers import make_affine, make_hill
+from .additional_pairs import make_additional_pairs

@@ -15,7 +15,7 @@ from django.views.decorators.http import require_http_methods
 from ratelimit.decorators import ratelimit
 
 from .captcha import check_captchas, generate_captchas
-from .totp import TotpAuthorize
+from .totp import TotpAuthorize, user_tfa_valid
 
 """
 CTFClub Project
@@ -37,6 +37,7 @@ def profile(request,username):
 	return render(request,'control_panel.html')
 
 @ratelimit(key='ip',rate='1/s')
+@user_tfa_valid
 def index(request):
 	challenges=Challenges.objects.all()
 	chals= make_index(challenges)
@@ -100,11 +101,12 @@ def login_view(request):
 				request.session['require_captcha'] = False
 				request.session['captcha_valid'] = False
 
-				if user.tfa_enabled:
-					request.session['unverified_tfa'] = True
-					return HttpResponseRedirect(reverse("verify_tfa"))
-				else:
-					return HttpResponseRedirect(reverse("index"))
+				# if user.tfa_enabled:
+				# 	request.session['verified_tfa'] = True
+				# 	return HttpResponseRedirect(reverse("verify_tfa"))
+				# else:
+				# 	return HttpResponseRedirect(reverse("index"))
+				return HttpResponseRedirect(reverse("index"))
 			else:
 				valid = False
 				message += "Invalid username and/or password."
@@ -297,6 +299,7 @@ def hint(request,hint_id):
 
 @login_required(login_url="login")
 @require_http_methods(["GET","POST"])
+@user_tfa_valid
 def control_panel(request,username):
 	msg = ''
 	if request.user.is_authenticated:
@@ -330,6 +333,7 @@ def control_panel(request,username):
 
 @ratelimit(key='user',rate='30/m')
 @login_required(login_url="login")
+@user_tfa_valid
 def solves(request,username = ''):
 
 	if username == '':
@@ -350,6 +354,7 @@ def solves(request,username = ''):
 
 @login_required(login_url="login")
 @require_http_methods(["GET","POST"])
+@user_tfa_valid
 def challenge_admin(request):
 	#for the sorting of the challenges later.
 	from operator import itemgetter
@@ -474,11 +479,11 @@ def challenge_admin(request):
 
 
 @login_required(login_url="login")
+@user_tfa_valid
 def solves_admin(request):
 	if not request.user.is_staff or not request.user.is_superuser:
 		return HttpResponseRedirect(reverse('index'))
-
-	if not request.user.tfa_enabled:
+	elif not request.user.tfa_enabled:
 		return HttpResponseRedirect(reverse('two_factor'))
 	all_challenges = Challenges.objects.order_by('category__name').values('id','name','category__name','num_solves')
 	all_challenges = jsonify_queryset(all_challenges)
@@ -487,6 +492,7 @@ def solves_admin(request):
 
 
 @login_required(login_url="login")
+@user_tfa_valid
 def get_all_solves(request):
 	if not request.user.is_staff or not request.user.is_superuser:
 		raise Http404()
@@ -541,6 +547,7 @@ def hint_admin(request,challenge_name):
 
 
 @login_required(login_url="login")
+@user_tfa_valid
 def admin_view(request):
 	if not (request.user.is_staff or request.user.is_superuser):
 		return JsonResponse({'OK':False})
@@ -679,10 +686,10 @@ def verify_tfa(request):
 
 	if request.method == "GET":
 
-		if request.session.get('unverified_tfa',False):
-			return render(request,"verify_tfa.html")
-		else:
+		if request.session.get('verified_tfa',False):
 			return HttpResponseRedirect(reverse("index"))
+		else:
+			return render(request,"verify_tfa.html")
 	else:
 		if request.is_ajax():
 			token = json_decode(request.body).get('token')
@@ -691,7 +698,7 @@ def verify_tfa(request):
 
 		totp_authorizer = TotpAuthorize(request.user.tfa_secret)
 		if totp_authorizer.valid(token):
-			request.session['unverified_tfa'] = False
+			request.session['verified_tfa'] = True
 			if request.is_ajax():
 				return JsonResponse({'token_invalid':True})
 			else:
@@ -704,6 +711,7 @@ def about(request):
 
 @login_required()
 @require_http_methods(["GET"])
+@user_tfa_valid
 def admin_leaderboard(request):
 	if not (request.user.is_staff or request.user.is_superuser):
 		return HttpResponseRedirect(reverse('index'))

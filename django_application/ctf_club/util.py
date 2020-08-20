@@ -73,7 +73,10 @@ CHALLENGES_TEMPLATES = [
 	 "points":300, "variety":False,"files":False},
 	{"name":"The Master Hacker", "sn":"master_hacker", "category":"Programming",
 	 "description":"This challenge is the bounded knapsack problem. A staple of algorithm interview questions.",
-	 "points":200, "variety":False,"files":True},
+	 "points":250, "variety":False,"files":True},
+	{"name": "Additional Pair Master", "sn": "additional_pairs", "category": "Programming",
+	 "description": "This challenge is an interview style question where the user has to find all pairs of integers in a list that add up to some number. It is one I got from a list done at Google.",
+	 "points": 140, "variety": False, "files": True},
 ]
 
 
@@ -203,3 +206,7 @@ def rank_users(users):
 			else:
 				user_ranks.append({'len':1,'users':[user]})
 	return user_ranks
+
+
+def tfa_is_authorized(request):
+	pass

@@ -2,6 +2,7 @@
 #  Licensed under LGPLv3 Or Later (2020)
 
 import datetime
+from functools import wraps
 from urllib import parse
 import pyotp
 import qrcode
@@ -50,3 +51,30 @@ class TotpAuthorize:
 		#A hack to get around android-token not deocoding the URI for me.
 		uri = parse.unquote(uri)
 		return qrcode.make(uri)
+
+
+def user_tfa_valid(view_func):
+	"""
+	Decorator that makes sure they have a valid 2fa token.
+	:param view_func:
+	:return:
+	"""
+	@wraps(view_func)
+	def _wrapped_view(request, *args, **kwargs):
+		#only check it if the user has been authenticated.
+		if request.user.is_authenticated:
+			#then check if they havent' enabled TFA no reason to require them to do it or to check the session variable.
+			if request.user.tfa_enabled is False:
+				return view_func(request,*args,**kwargs)
+			#check if the user has not been verified.
+			elif request.session.get('verified_tfa', False):
+				from django.http import HttpResponseRedirect
+				from django.urls import reverse
+				return HttpResponseRedirect(reverse('verify_tfa'))
+			#they haven't been
+			else:
+				return view_func(request, *args, **kwargs)
+		else:
+			return view_func(request,*args,**kwargs)
+
+	return _wrapped_view
